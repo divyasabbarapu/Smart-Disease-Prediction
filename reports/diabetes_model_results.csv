@@ -1,0 +1,5 @@
+Model,Accuracy,Precision,Recall,F1_Score
+SVM,0.7532,0.66,0.6111,0.6346
+KNN,0.7013,0.5833,0.5185,0.549
+Random Forest,0.7468,0.6531,0.5926,0.6214
+Ensemble,0.7403,0.64,0.5926,0.6154

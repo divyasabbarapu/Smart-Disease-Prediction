@@ -1,0 +1,247 @@
+/* =========================================================
+   MEDIPREDICT PROFESSIONAL HEALTHCARE THEME
+   ========================================================= */
+
+.stApp {
+    background: #f5f9fc;
+    color: #17324d;
+}
+
+
+/* ---------------------------------------------------------
+   MAIN CONTENT
+   --------------------------------------------------------- */
+
+.main .block-container {
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    max-width: 1350px;
+}
+
+
+/* ---------------------------------------------------------
+   HIDE STREAMLIT DEFAULT ELEMENTS
+   --------------------------------------------------------- */
+
+#MainMenu {
+    visibility: hidden;
+}
+
+footer {
+    visibility: hidden;
+}
+
+header[data-testid="stHeader"] {
+    background: transparent;
+}
+
+
+/* ---------------------------------------------------------
+   MAIN HERO
+   --------------------------------------------------------- */
+
+.hero-title {
+    font-size: 48px;
+    font-weight: 800;
+    color: #0b3954 !important;
+    margin-bottom: 8px;
+}
+
+.hero-subtitle {
+    font-size: 20px;
+    color: #587086 !important;
+    margin-bottom: 28px;
+    line-height: 1.5;
+}
+
+
+/* ---------------------------------------------------------
+   MEDICAL BADGE
+   --------------------------------------------------------- */
+
+.medical-badge {
+    display: inline-block;
+    background: #dff7f5;
+    color: #087f8c !important;
+    padding: 9px 17px;
+    border-radius: 30px;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 18px;
+}
+
+
+/* ---------------------------------------------------------
+   NORMAL TEXT
+   --------------------------------------------------------- */
+
+.stApp p,
+.stApp label,
+.stApp span,
+.stApp div {
+    color: #17324d;
+}
+
+
+/* Keep Streamlit buttons readable */
+
+.stButton button span {
+    color: inherit !important;
+}
+
+
+/* ---------------------------------------------------------
+   LOGIN / REGISTER CARD
+   --------------------------------------------------------- */
+
+.login-card {
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 22px;
+    border: 1px solid #dce8ef;
+    box-shadow: 0 12px 35px rgba(11, 57, 84, 0.10);
+}
+
+
+/* ---------------------------------------------------------
+   INPUT BOXES
+   --------------------------------------------------------- */
+
+.stTextInput input,
+.stNumberInput input {
+    background: #ffffff !important;
+    color: #17324d !important;
+    border: 1px solid #cbd9e2 !important;
+    border-radius: 10px !important;
+}
+
+.stTextInput input:focus,
+.stNumberInput input:focus {
+    border-color: #0b8f9c !important;
+}
+
+
+/* Input labels */
+
+.stTextInput label,
+.stNumberInput label {
+    color: #29465c !important;
+    font-weight: 600 !important;
+}
+
+
+/* ---------------------------------------------------------
+   BUTTONS
+   --------------------------------------------------------- */
+
+.stButton > button {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 10px;
+    font-weight: 700;
+    border: none;
+    background: #087f8c;
+    color: white !important;
+    transition: 0.2s ease;
+}
+
+.stButton > button:hover {
+    background: #066873;
+    color: white !important;
+}
+
+
+/* ---------------------------------------------------------
+   TABS
+   --------------------------------------------------------- */
+
+button[data-baseweb="tab"] {
+    color: #456174 !important;
+    font-weight: 650;
+}
+
+button[data-baseweb="tab"][aria-selected="true"] {
+    color: #087f8c !important;
+}
+
+
+/* ---------------------------------------------------------
+   DASHBOARD CARDS
+   --------------------------------------------------------- */
+
+.dashboard-card {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 18px;
+    border: 1px solid #dce8ef;
+    box-shadow: 0 6px 22px rgba(11, 57, 84, 0.07);
+    min-height: 125px;
+}
+
+.card-title {
+    font-size: 14px;
+    color: #708395 !important;
+    margin-bottom: 8px;
+}
+
+.card-value {
+    font-size: 32px;
+    font-weight: 800;
+    color: #0b3954 !important;
+}
+
+
+/* ---------------------------------------------------------
+   SECTION HEADINGS
+   --------------------------------------------------------- */
+
+.section-heading {
+    font-size: 27px;
+    font-weight: 750;
+    color: #0b3954 !important;
+    margin-top: 30px;
+    margin-bottom: 18px;
+}
+
+
+/* ---------------------------------------------------------
+   SIDEBAR
+   --------------------------------------------------------- */
+
+section[data-testid="stSidebar"] {
+    background: linear-gradient(
+        180deg,
+        #073b4c 0%,
+        #086788 55%,
+        #0a9396 100%
+    );
+}
+
+section[data-testid="stSidebar"] p,
+section[data-testid="stSidebar"] span,
+section[data-testid="stSidebar"] label,
+section[data-testid="stSidebar"] div {
+    color: white !important;
+}
+
+
+/* ---------------------------------------------------------
+   DATAFRAME
+   --------------------------------------------------------- */
+
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    border: 1px solid #dce8ef;
+}
+
+
+/* ---------------------------------------------------------
+   FOOTER
+   --------------------------------------------------------- */
+
+.footer {
+    text-align: center;
+    color: #718096 !important;
+    padding: 30px;
+    font-size: 13px;
+}
