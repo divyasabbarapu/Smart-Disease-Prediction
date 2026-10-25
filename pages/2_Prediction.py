@@ -1,6 +1,5 @@
 import os
 import sys
-import io
 from datetime import datetime
 
 import streamlit as st
@@ -13,17 +12,16 @@ import joblib
 # =========================================================
 
 BASE_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
+    os.path.dirname(os.path.abspath(__file__))
 )
 
 sys.path.append(BASE_DIR)
 
-
-from database import (
-    add_patient,
-    save_prediction
+from database import add_patient, save_prediction
+from src.predict import (
+    predict_disease,
+    KIDNEY_FEATURES,
+    LIVER_FEATURES
 )
 
 
@@ -42,41 +40,24 @@ st.set_page_config(
 # CSS
 # =========================================================
 
-css_path = os.path.join(
-    BASE_DIR,
-    "assets",
-    "style.css"
-)
+css_path = os.path.join(BASE_DIR, "assets", "style.css")
 
-with open(
-    css_path,
-    "r",
-    encoding="utf-8"
-) as file:
-
-    st.markdown(
-        f"<style>{file.read()}</style>",
-        unsafe_allow_html=True
-    )
+if os.path.exists(css_path):
+    with open(css_path, "r", encoding="utf-8") as file:
+        st.markdown(
+            f"<style>{file.read()}</style>",
+            unsafe_allow_html=True
+        )
 
 
 # =========================================================
 # LOGIN CHECK
 # =========================================================
 
-if not st.session_state.get(
-    "logged_in",
-    False
-):
-
-    st.warning(
-        "Please login to access this page."
-    )
-
+if not st.session_state.get("logged_in", False):
+    st.warning("Please login to access this page.")
     st.switch_page("app.py")
-
     st.stop()
-
 
 user = st.session_state.user
 
@@ -114,69 +95,25 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-
 st.sidebar.markdown("### Navigation")
 
+if st.sidebar.button("🏠 Dashboard", use_container_width=True):
+    st.switch_page("pages/1_Dashboard.py")
 
-if st.sidebar.button(
-    "🏠 Dashboard",
-    use_container_width=True
-):
-
-    st.switch_page(
-        "pages/1_Dashboard.py"
-    )
-
-
-if st.sidebar.button(
-    "🩺 New Prediction",
-    use_container_width=True
-):
-
+if st.sidebar.button("🩺 New Prediction", use_container_width=True):
     st.rerun()
 
+if st.sidebar.button("👥 Patient Records", use_container_width=True):
+    st.switch_page("pages/3_Patient_Records.py")
 
-if st.sidebar.button(
-    "👥 Patient Records",
-    use_container_width=True
-):
-
-    st.switch_page(
-        "pages/3_Patient_Records.py"
-    )
-
-
-if st.sidebar.button(
-    "📊 Model Performance",
-    use_container_width=True
-):
-
-    st.switch_page(
-        "pages/4_Model_Performance.py"
-    )
-
-
-if st.sidebar.button(
-    "ℹ️ About",
-    use_container_width=True
-):
-
-    st.switch_page(
-        "pages/5_About.py"
-    )
-
+if st.sidebar.button("ℹ️ About", use_container_width=True):
+    st.switch_page("pages/4_About.py")
 
 st.sidebar.markdown("---")
 
-
-if st.sidebar.button(
-    "🚪 Logout",
-    use_container_width=True
-):
-
+if st.sidebar.button("🚪 Logout", use_container_width=True):
     st.session_state.logged_in = False
     st.session_state.user = None
-
     st.switch_page("app.py")
 
 
@@ -185,16 +122,12 @@ if st.sidebar.button(
 # =========================================================
 
 st.markdown(
-    '<div class="medical-badge">'
-    '🩺 PATIENT HEALTH ANALYSIS'
-    '</div>',
+    '<div class="medical-badge">🩺 PATIENT HEALTH ANALYSIS</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
-    '<div class="hero-title">'
-    'New Prediction'
-    '</div>',
+    '<div class="hero-title">New Prediction</div>',
     unsafe_allow_html=True
 )
 
@@ -212,9 +145,7 @@ st.markdown(
 # =========================================================
 
 st.markdown(
-    '<div class="section-heading">'
-    '1. Select Disease'
-    '</div>',
+    '<div class="section-heading">1. Select Disease</div>',
     unsafe_allow_html=True
 )
 
@@ -222,7 +153,9 @@ disease = st.selectbox(
     "Prediction Type",
     [
         "Heart Disease",
-        "Diabetes"
+        "Diabetes",
+        "Kidney Disease",
+        "Liver Disease"
     ]
 )
 
@@ -232,25 +165,19 @@ disease = st.selectbox(
 # =========================================================
 
 st.markdown(
-    '<div class="section-heading">'
-    '2. Patient Information'
-    '</div>',
+    '<div class="section-heading">2. Patient Information</div>',
     unsafe_allow_html=True
 )
 
 col1, col2, col3 = st.columns(3)
 
-
 with col1:
-
     patient_name = st.text_input(
         "Patient Name *",
         placeholder="Enter patient name"
     )
 
-
 with col2:
-
     patient_age = st.number_input(
         "Age",
         min_value=1,
@@ -258,18 +185,11 @@ with col2:
         value=30
     )
 
-
 with col3:
-
     gender = st.selectbox(
         "Gender",
-        [
-            "Not Specified",
-            "Male",
-            "Female"
-        ]
+        ["Not Specified", "Male", "Female"]
     )
-
 
 phone = st.text_input(
     "Phone Number",
@@ -281,58 +201,56 @@ phone = st.text_input(
 # MODEL FEATURES
 # =========================================================
 
-model_name = (
-    disease.lower()
-    .replace(" ", "_")
-)
+model_name = disease.lower().replace(" ", "_")
 
-features_path = os.path.join(
-    BASE_DIR,
-    "models",
-    model_name + "_features.pkl"
-)
+if disease == "Kidney Disease":
 
+    features = KIDNEY_FEATURES
 
-if not os.path.exists(
-    features_path
-):
+elif disease == "Liver Disease":
 
-    st.error(
-        f"Model feature file not found: "
-        f"{features_path}"
+    features = LIVER_FEATURES
+
+else:
+
+    features_path = os.path.join(
+        BASE_DIR,
+        "models",
+        model_name + "_features.pkl"
     )
 
-    st.stop()
+    if not os.path.exists(features_path):
+        st.error(
+            f"Model feature file not found: {features_path}"
+        )
+        st.stop()
 
-
-features = joblib.load(
-    features_path
-)
+    features = joblib.load(features_path)
 
 
 # =========================================================
-# HEALTH PARAMETERS
+# HEALTH PARAMETER INFORMATION
 # =========================================================
 
 st.markdown(
-    '<div class="section-heading">'
-    '3. Health Parameters'
-    '</div>',
+    '<div class="section-heading">3. Health Parameters</div>',
     unsafe_allow_html=True
 )
 
 st.info(
-    "Enter the values required by the selected "
-    "machine learning model. These fields correspond "
-    "to the dataset used during training."
+    "Enter the values required by the selected machine learning model. "
+    "For Liver Disease, enter the laboratory values from the patient's "
+    "report."
 )
 
 
 # =========================================================
-# FEATURE METADATA
+# NUMERICAL FEATURE DETAILS
 # =========================================================
 
 feature_info = {
+
+    # ---------------- HEART DISEASE ----------------
 
     "age": {
         "label": "Age",
@@ -438,6 +356,9 @@ feature_info = {
         "default": 2.0
     },
 
+
+    # ---------------- DIABETES ----------------
+
     "pregnancies": {
         "label": "Pregnancies",
         "min": 0.0,
@@ -492,18 +413,256 @@ feature_info = {
         "max": 3.0,
         "step": 0.01,
         "default": 0.5
+    },
+
+
+    # ---------------- KIDNEY DISEASE ----------------
+
+    "bp": {
+        "label": "Blood Pressure",
+        "min": 0.0,
+        "max": 200.0,
+        "step": 1.0,
+        "default": 80.0
+    },
+
+    "sg": {
+        "label": "Specific Gravity",
+        "min": 1.0,
+        "max": 1.03,
+        "step": 0.005,
+        "default": 1.020
+    },
+
+    "al": {
+        "label": "Albumin",
+        "min": 0.0,
+        "max": 5.0,
+        "step": 1.0,
+        "default": 0.0
+    },
+
+    "su": {
+        "label": "Sugar",
+        "min": 0.0,
+        "max": 5.0,
+        "step": 1.0,
+        "default": 0.0
+    },
+
+    "bgr": {
+        "label": "Blood Glucose Random",
+        "min": 0.0,
+        "max": 600.0,
+        "step": 1.0,
+        "default": 121.0
+    },
+
+    "bu": {
+        "label": "Blood Urea",
+        "min": 0.0,
+        "max": 400.0,
+        "step": 1.0,
+        "default": 36.0
+    },
+
+    "sc": {
+        "label": "Serum Creatinine",
+        "min": 0.0,
+        "max": 80.0,
+        "step": 0.1,
+        "default": 1.2
+    },
+
+    "sod": {
+        "label": "Sodium",
+        "min": 0.0,
+        "max": 200.0,
+        "step": 1.0,
+        "default": 138.0
+    },
+
+    "pot": {
+        "label": "Potassium",
+        "min": 0.0,
+        "max": 20.0,
+        "step": 0.1,
+        "default": 4.4
+    },
+
+    "hemo": {
+        "label": "Hemoglobin",
+        "min": 0.0,
+        "max": 25.0,
+        "step": 0.1,
+        "default": 13.0
+    },
+
+    "pcv": {
+        "label": "Packed Cell Volume",
+        "min": 0.0,
+        "max": 60.0,
+        "step": 1.0,
+        "default": 40.0
+    },
+
+    "wc": {
+        "label": "White Blood Cell Count",
+        "min": 0.0,
+        "max": 30000.0,
+        "step": 100.0,
+        "default": 8000.0
+    },
+
+    "rc": {
+        "label": "Red Blood Cell Count",
+        "min": 0.0,
+        "max": 10.0,
+        "step": 0.1,
+        "default": 4.8
+    },
+
+
+    # ---------------- LIVER DISEASE ----------------
+
+    "total_bilirubin": {
+        "label": "Total Bilirubin",
+        "min": 0.0,
+        "max": 100.0,
+        "step": 0.1,
+        "default": 1.0
+    },
+
+    "direct_bilirubin": {
+        "label": "Direct Bilirubin",
+        "min": 0.0,
+        "max": 50.0,
+        "step": 0.1,
+        "default": 0.3
+    },
+
+    "alkaline_phosphotase": {
+        "label": "Alkaline Phosphotase",
+        "min": 0.0,
+        "max": 3000.0,
+        "step": 1.0,
+        "default": 200.0
+    },
+
+    "alamine_aminotransferase": {
+        "label": "Alamine Aminotransferase (ALT)",
+        "min": 0.0,
+        "max": 3000.0,
+        "step": 1.0,
+        "default": 30.0
+    },
+
+    "aspartate_aminotransferase": {
+        "label": "Aspartate Aminotransferase (AST)",
+        "min": 0.0,
+        "max": 5000.0,
+        "step": 1.0,
+        "default": 35.0
+    },
+
+    "total_protiens": {
+        "label": "Total Proteins",
+        "min": 0.0,
+        "max": 15.0,
+        "step": 0.1,
+        "default": 6.5
+    },
+
+    "albumin": {
+        "label": "Albumin",
+        "min": 0.0,
+        "max": 10.0,
+        "step": 0.1,
+        "default": 3.5
+    },
+
+    "albumin_and_globulin_ratio": {
+        "label": "Albumin and Globulin Ratio",
+        "min": 0.0,
+        "max": 5.0,
+        "step": 0.01,
+        "default": 1.0
     }
 }
 
 
 # =========================================================
-# CREATE INPUTS
+# CATEGORICAL FEATURES
+# =========================================================
+
+categorical_options = {
+
+    # Kidney Disease
+    "rbc": {
+        "label": "Red Blood Cells",
+        "options": ["normal", "abnormal"]
+    },
+
+    "pc": {
+        "label": "Pus Cell",
+        "options": ["normal", "abnormal"]
+    },
+
+    "pcc": {
+        "label": "Pus Cell Clumps",
+        "options": ["notpresent", "present"]
+    },
+
+    "ba": {
+        "label": "Bacteria",
+        "options": ["notpresent", "present"]
+    },
+
+    "htn": {
+        "label": "Hypertension",
+        "options": ["no", "yes"]
+    },
+
+    "dm": {
+        "label": "Diabetes Mellitus",
+        "options": ["no", "yes"]
+    },
+
+    "cad": {
+        "label": "Coronary Artery Disease",
+        "options": ["no", "yes"]
+    },
+
+    "appet": {
+        "label": "Appetite",
+        "options": ["good", "poor"]
+    },
+
+    "pe": {
+        "label": "Pedal Edema",
+        "options": ["no", "yes"]
+    },
+
+    "ane": {
+        "label": "Anemia",
+        "options": ["no", "yes"]
+    },
+
+    # Liver Disease
+    "gender": {
+        "label": "Gender",
+        "options": ["Female", "Male"]
+    }
+}
+
+
+# =========================================================
+# CREATE HEALTH PARAMETER INPUTS
 # =========================================================
 
 input_data = {}
 
 columns = st.columns(3)
-
 
 for index, feature in enumerate(features):
 
@@ -513,11 +672,24 @@ for index, feature in enumerate(features):
 
     with column:
 
-        if feature_key in feature_info:
+        # Categorical inputs for Kidney and Liver Disease
+        if (
+            disease in ["Kidney Disease", "Liver Disease"]
+            and feature_key in categorical_options
+        ):
 
-            info = feature_info[
-                feature_key
-            ]
+            info = categorical_options[feature_key]
+
+            input_data[feature] = st.selectbox(
+                info["label"],
+                info["options"],
+                key=f"input_{feature}"
+            )
+
+        # Numerical inputs
+        elif feature_key in feature_info:
+
+            info = feature_info[feature_key]
 
             input_data[feature] = st.number_input(
                 info["label"],
@@ -544,12 +716,9 @@ for index, feature in enumerate(features):
 st.markdown("")
 
 st.markdown(
-    '<div class="section-heading">'
-    '4. Generate Prediction'
-    '</div>',
+    '<div class="section-heading">4. Generate Prediction</div>',
     unsafe_allow_html=True
 )
-
 
 predict_button = st.button(
     "🔬 Analyze Patient & Generate Prediction",
@@ -565,120 +734,26 @@ predict_button = st.button(
 if predict_button:
 
     if not patient_name.strip():
-
         st.error(
             "Please enter the patient name before prediction."
         )
-
         st.stop()
-
 
     try:
 
-        # -------------------------------------------------
-        # LOAD MODELS
-        # -------------------------------------------------
-
-        svm_path = os.path.join(
-            BASE_DIR,
-            "models",
-            model_name + "_svm.pkl"
+        # Generate predictions
+        results = predict_disease(
+            disease,
+            input_data
         )
 
-        knn_path = os.path.join(
-            BASE_DIR,
-            "models",
-            model_name + "_knn.pkl"
-        )
+        svm_prediction = results["SVM"]
+        knn_prediction = results["KNN"]
+        rf_prediction = results["Random Forest"]
+        ensemble_prediction = results["Ensemble"]
 
-        rf_path = os.path.join(
-            BASE_DIR,
-            "models",
-            model_name + "_random_forest.pkl"
-        )
-
-        ensemble_path = os.path.join(
-            BASE_DIR,
-            "models",
-            model_name + "_ensemble.pkl"
-        )
-
-
-        svm_model = joblib.load(
-            svm_path
-        )
-
-        knn_model = joblib.load(
-            knn_path
-        )
-
-        rf_model = joblib.load(
-            rf_path
-        )
-
-        ensemble_model = joblib.load(
-            ensemble_path
-        )
-
-
-        # -------------------------------------------------
-        # CREATE DATAFRAME
-        # -------------------------------------------------
-
-        input_df = pd.DataFrame(
-            [input_data],
-            columns=features
-        )
-
-
-        # -------------------------------------------------
-        # INDIVIDUAL PREDICTIONS
-        # -------------------------------------------------
-
-        svm_prediction = int(
-            svm_model.predict(input_df)[0]
-        )
-
-        knn_prediction = int(
-            knn_model.predict(input_df)[0]
-        )
-
-        rf_prediction = int(
-            rf_model.predict(input_df)[0]
-        )
-
-        ensemble_prediction = int(
-            ensemble_model.predict(input_df)[0]
-        )
-
-
-        # -------------------------------------------------
-        # MAJORITY VOTE
-        # -------------------------------------------------
-
-        predictions = [
-            svm_prediction,
-            knn_prediction,
-            rf_prediction
-        ]
-
-        disease_votes = sum(
-            predictions
-        )
-
-        healthy_votes = (
-            3 - disease_votes
-        )
-
-        if disease_votes >= 2:
-
-            final_result = 1
-            agreement = disease_votes
-
-        else:
-
-            final_result = 0
-            agreement = healthy_votes
+        agreement = results["Agreement"]
+        final_result = results["Final"]
 
 
         # -------------------------------------------------
@@ -686,13 +761,13 @@ if predict_button:
         # -------------------------------------------------
 
         patient_id = add_patient(
-    user["id"],
-    patient_name.strip(),
-    patient_age,
-    gender,
-    phone.strip(),
-    email=user["email"]
-)
+            user["id"],
+            patient_name.strip(),
+            patient_age,
+            gender,
+            phone.strip(),
+            email=user["email"]
+        )
 
 
         # -------------------------------------------------
@@ -719,57 +794,44 @@ if predict_button:
         # -------------------------------------------------
 
         st.session_state["last_prediction"] = {
-
             "patient_name": patient_name,
-
             "disease": disease,
-
             "svm": svm_prediction,
-
             "knn": knn_prediction,
-
             "rf": rf_prediction,
-
             "ensemble": ensemble_prediction,
-
             "final": final_result,
-
             "agreement": agreement,
-
             "input_data": input_data,
-
             "date": datetime.now().strftime(
                 "%d %B %Y, %I:%M %p"
             )
         }
 
 
-        # =================================================
+        # -------------------------------------------------
         # DISPLAY RESULT
-        # =================================================
+        # -------------------------------------------------
 
         st.markdown("---")
 
         st.markdown(
-            '<div class="section-heading">'
-            'Prediction Results'
-            '</div>',
+            '<div class="section-heading">Prediction Results</div>',
             unsafe_allow_html=True
         )
-
 
         if final_result == 1:
 
             st.error(
-                f"⚠️ The ensemble system indicates "
-                f"a possible {disease}."
+                f"⚠️ The ensemble system indicates a "
+                f"possible {disease}."
             )
 
         else:
 
             st.success(
-                f"✅ The ensemble system indicates "
-                f"no predicted {disease}."
+                f"✅ The ensemble system indicates no "
+                f"predicted {disease}."
             )
 
 
@@ -779,65 +841,41 @@ if predict_button:
 
         r1, r2, r3, r4 = st.columns(4)
 
-
         with r1:
-
             result = (
                 "Disease"
                 if svm_prediction == 1
                 else "No Disease"
             )
-
-            st.metric(
-                "SVM",
-                result
-            )
-
+            st.metric("SVM", result)
 
         with r2:
-
             result = (
                 "Disease"
                 if knn_prediction == 1
                 else "No Disease"
             )
-
-            st.metric(
-                "KNN",
-                result
-            )
-
+            st.metric("KNN", result)
 
         with r3:
-
             result = (
                 "Disease"
                 if rf_prediction == 1
                 else "No Disease"
             )
-
-            st.metric(
-                "Random Forest",
-                result
-            )
-
+            st.metric("Random Forest", result)
 
         with r4:
-
             result = (
                 "Disease"
                 if ensemble_prediction == 1
                 else "No Disease"
             )
-
-            st.metric(
-                "Ensemble",
-                result
-            )
+            st.metric("Ensemble", result)
 
 
         # -------------------------------------------------
-        # AGREEMENT
+        # MODEL AGREEMENT
         # -------------------------------------------------
 
         st.markdown("### 🤝 Model Agreement")
@@ -866,27 +904,18 @@ if predict_button:
         summary1, summary2, summary3 = st.columns(3)
 
         with summary1:
-
-            st.write(
-                f"**Patient:** {patient_name}"
-            )
+            st.write(f"**Patient:** {patient_name}")
 
         with summary2:
-
-            st.write(
-                f"**Age:** {patient_age}"
-            )
+            st.write(f"**Age:** {patient_age}")
 
         with summary3:
-
-            st.write(
-                f"**Disease:** {disease}"
-            )
+            st.write(f"**Disease:** {disease}")
 
 
-        # =================================================
+        # -------------------------------------------------
         # DOWNLOAD REPORT
-        # =================================================
+        # -------------------------------------------------
 
         report = f"""
 MEDIPREDICT
@@ -925,7 +954,6 @@ Educational ML system only.
 This prediction does not replace professional
 medical diagnosis.
 """
-
 
         st.download_button(
             label="📄 Download Prediction Report",

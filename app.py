@@ -33,16 +33,18 @@ CSS_PATH = os.path.join(
     "style.css"
 )
 
-with open(
-    CSS_PATH,
-    "r",
-    encoding="utf-8"
-) as file:
+if os.path.exists(CSS_PATH):
 
-    st.markdown(
-        f"<style>{file.read()}</style>",
-        unsafe_allow_html=True
-    )
+    with open(
+        CSS_PATH,
+        "r",
+        encoding="utf-8"
+    ) as file:
+
+        st.markdown(
+            f"<style>{file.read()}</style>",
+            unsafe_allow_html=True
+        )
 
 
 # =========================================================
@@ -350,7 +352,12 @@ with col1:
     st.markdown("### 🩺 Diseases")
 
     st.write(
-        "Heart Disease and Diabetes"
+        """
+        - Heart Disease
+        - Diabetes
+        - Kidney Disease
+        - Liver Disease
+        """
     )
 
 with col2:

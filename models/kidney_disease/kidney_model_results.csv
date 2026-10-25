@@ -1,0 +1,5 @@
+Model,Accuracy,Precision,Recall,F1 Score
+svm,100.0,100.0,100.0,100.0
+knn,97.5,100.0,96.0,97.96
+random_forest,100.0,100.0,100.0,100.0
+ensemble,100.0,100.0,100.0,100.0
